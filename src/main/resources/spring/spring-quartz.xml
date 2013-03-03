@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
+       default-lazy-init="false">
+    <!-- 定义目标bean和bean中的方法  -->
+    <bean id="wineSpiderDataQuartzJob" class="com.wine.spider.job.WineSpiderDataQuartzJob">
+        <property name="entityManagerFactory">
+            <ref bean="entityManagerFactory"/>
+        </property>
+     </bean>
+    <bean id="wineSpiderDataQuartzJobMethod" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject">
+            <ref bean="wineSpiderDataQuartzJob"/>
+        </property>
+        <property name="targetMethod">  <!-- 要执行的方法名称 -->
+            <value>execute</value>
+        </property>
+    </bean>
+
+    <!-- ======================== 调度触发器 ======================== -->
+    <bean id="wineSpiderDataQuartzJobBean" class="org.springframework.scheduling.quartz.CronTriggerBean">
+        <property name="jobDetail" ref="wineSpiderDataQuartzJobMethod"></property>
+        <property name="cronExpression" value="${spider.import.data.time}"></property>
+    </bean>
+
+    <!-- 定义目标bean和bean中的方法  -->
+    <bean id="failedItemQuartzJob" class="com.wine.spider.job.FailedItemQuartzJob">
+        <property name="entityManagerFactory">
+            <ref bean="entityManagerFactory"/>
+        </property>
+    </bean>
+    <bean id="failedItemQuartzJobMethod" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <property name="targetObject">
+            <ref bean="failedItemQuartzJob"/>
+        </property>
+        <property name="targetMethod">  <!-- 要执行的方法名称 -->
+            <value>execute</value>
+        </property>
+    </bean>
+
+    <!-- ======================== 调度触发器 ======================== -->
+    <bean id="failedItemQuartzJobBean" class="org.springframework.scheduling.quartz.CronTriggerBean">
+        <property name="jobDetail" ref="failedItemQuartzJobMethod"></property>
+        <property name="cronExpression" value="${spider.failed.import.data.time}"></property>
+    </bean>
+
+    <!-- ======================== 调度工厂 ======================== -->
+    <bean id="SpringJobSchedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="failedItemQuartzJobBean"/>
+            </list>
+        </property>
+    </bean>
+
+</beans>
